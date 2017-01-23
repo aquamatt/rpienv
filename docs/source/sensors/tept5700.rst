@@ -1,0 +1,11 @@
+.. _ref-tept5700:
+
+TEPT5700 Phototransistor
+************************
+
+.. image:: img/tept5700_package.png
+
+References
+==========
+
+* Technical specification: http://www.vishay.com/docs/81321/tept5700.pdf

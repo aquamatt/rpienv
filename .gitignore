@@ -1,0 +1,8 @@
+# 3rd party not for this repo
+# this holds Raspbian images for me
+raspbian
+
+# ephemeral and temp files
+docs/build
+*.pyc
+.*.swp
