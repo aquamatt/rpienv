@@ -1,0 +1,3 @@
+# keys and other settings
+LIBRATO_USER = 'YOUR USER'
+LIBRATO_TOKEN = 'YOUR TOKEN'

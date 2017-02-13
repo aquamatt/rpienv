@@ -3,6 +3,8 @@
 raspbian
 
 # ephemeral and temp files
+tmpdata
 docs/build
 *.pyc
 .*.swp
+src/settings.py
