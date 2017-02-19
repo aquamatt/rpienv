@@ -20,3 +20,40 @@ L1 and L2 are purely for the application to provide indication to the user.
 One, for example, will flash each time the metrology LED flash is detected.
 
 (diagram created with https://www.digikey.com/schemeit)
+
+Appication installation
+=======================
+
+The `power.py` script can be run standalone on the console as:
+
+.. code-block:: bash
+
+  > ./power.py --pidfile=/tmp/power.pid --nodaemon
+
+
+But you will want to daemonise in time:
+
+.. code-block:: bash
+
+  > ./power.py --pidfile=/tmp/power.pid
+
+
+To kill a daemon process:
+
+.. code-block:: bash
+
+  > ./power.py --pidfile=/tmp/power.pid --kill
+
+To see options:
+
+.. code-block:: bash
+
+  > ./power.py --pidfile=/tmp/power.pid -h
+
+
+Init script
+-----------
+
+To keep the power tool running you need to install an init script. Run
+`install_init_script.py` in the code directory to do so. The power monitor will
+now start on boot.

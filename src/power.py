@@ -8,11 +8,15 @@
 # use:
 # $ power.py
 from __future__ import division
+import sys
+import signal
 import threading
 import time
 
 import RPi.GPIO as GPIO
+import optfn
 
+from daemon import Daemon
 from librato_logger import LibratoLogger
 from influx_logger import InfluxLogger
 from file_logger import FileLogger
@@ -80,6 +84,9 @@ class FlashMonitor(object):
 
 
 def run():
+    # Daemon is killed with a SIGTERM, as might happen from CLI by a user with
+    # kill, so we trap and ensure a clean shutdown if this happens.
+    signal.signal(signal.SIGTERM, shutdown)
     FlashReady().start()
     librato.start()
     influxdb.start()
@@ -92,13 +99,61 @@ def run():
     except Exception, ex:
         print("An error occurred: {}".format(ex.message))
     finally:
-        print("CLEANING UP GPIO and loggers")
-        librato.stop()
-        influxdb.stop()
-        fileout.stop()
-        GPIO.cleanup()
+        shutdown()
+
+
+def shutdown(*args, **kwargs):
+    print("CLEANING UP GPIO and loggers")
+    librato.stop()
+    influxdb.stop()
+    fileout.stop()
+    GPIO.cleanup()
+    sys.exit()
+
+
+def startup():
+    FlashMonitor().setup()
+    run()
+
+
+class FlashMonitorDaemon(Daemon):
+    def run(self):
+        startup()
+
+
+def daemonise(pidfile="/var/run/power.pid", kill=False, restart=False):
+    daemon = FlashMonitorDaemon(
+        pidfile=pidfile,
+        stdout="/tmp/flashmonitor.out",
+        stderr="/tmp/flashmonitor.err"
+        )
+    if restart:
+        daemon.restart()
+    elif kill:
+        daemon.stop()
+    else:
+        daemon.start()
+
+
+def cli_handler(pidfile='/var/run/power.pid', kill=False, restart=False,
+                nodaemon=False):
+    """
+    Use:
+
+    > ./power.py [options]
+
+    --pidfile=<pid file path>  - default /var/run/power.pid
+    --kill                     - kill running daemon
+    --restart                  - restart daemon
+    --nodaemon                 - default is False (daemonise)
+
+    Output is sent to /tmp/flashmonitor.[out|err]
+    """
+    if nodaemon:
+        startup()
+    else:
+        daemonise(pidfile, kill, restart)
 
 
 if __name__ == '__main__':
-    FlashMonitor().setup()
-    run()
+    optfn.run(cli_handler)

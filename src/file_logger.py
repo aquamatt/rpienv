@@ -14,6 +14,7 @@ class FileLogger(BaseLogger):
     """
     def __init__(self, filename):
         self.filename = filename
+        self.last = None
 
     def put(self, data, timestamp=None):
         """
@@ -23,9 +24,17 @@ class FileLogger(BaseLogger):
             timestamp = time.time()
         now_date = datetime.datetime.fromtimestamp(timestamp)
 
+        if self.last is None:
+            self.last = timestamp
+            return
+
+        delta = timestamp - self.last
+        self.last = timestamp
+
         if type(data) is not ListType:
             data = [data]
 
+        data.insert(0, delta)
         data = [str(d) for d in [now_date, timestamp]+data]
 
         with open(self.filename, "at") as df:
