@@ -1,3 +1,15 @@
 # keys and other settings
 LIBRATO_USER = 'YOUR USER'
 LIBRATO_TOKEN = 'YOUR TOKEN'
+
+INFLUXDB = {
+    "host": "localhost",
+    "port": 8086,
+    "username": "root",
+    "password": "root",
+    "database": None,
+    "ssl": False,
+    "verify_ssl": True,
+    "use_udp": False,
+    "udp_port": 4444
+    }

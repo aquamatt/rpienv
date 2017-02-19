@@ -16,4 +16,7 @@ author built this, but could probably be an order of magnitude larger.
 
 .. image:: img/metrology_monitor.png
 
+L1 and L2 are purely for the application to provide indication to the user.
+One, for example, will flash each time the metrology LED flash is detected.
+
 (diagram created with https://www.digikey.com/schemeit)

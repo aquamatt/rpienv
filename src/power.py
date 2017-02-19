@@ -14,7 +14,9 @@ import time
 import RPi.GPIO as GPIO
 
 from librato_logger import LibratoLogger
+from influx_logger import InfluxLogger
 from file_logger import FileLogger
+import settings
 
 
 # board pin mapping
@@ -24,7 +26,8 @@ LED_READY = 16
 
 DATA_FILE = "/tmp/power_{}.txt".format(int(time.time())-1422000000)
 
-librato = LibratoLogger(name="power")
+librato = LibratoLogger(name="power", settings=settings)
+influxdb = InfluxLogger(name="electricity_power", settings=settings)
 fileout = FileLogger(DATA_FILE)
 
 
@@ -59,6 +62,7 @@ class FlashMonitor(object):
         power = 3600 / dt
         librato.put(power, now)
         fileout.put(power, now)
+        influxdb.put(power, now)
 
         FlashAction().start()
 
@@ -78,6 +82,7 @@ class FlashMonitor(object):
 def run():
     FlashReady().start()
     librato.start()
+    influxdb.start()
     fileout.start()
     try:
         while True:
@@ -89,6 +94,7 @@ def run():
     finally:
         print("CLEANING UP GPIO and loggers")
         librato.stop()
+        influxdb.stop()
         fileout.stop()
         GPIO.cleanup()
 

@@ -7,4 +7,5 @@ tmpdata
 docs/build
 *.pyc
 .*.swp
+.*.swo
 src/settings.py

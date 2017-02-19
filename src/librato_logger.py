@@ -11,7 +11,6 @@ import librato
 from librato.aggregator import Aggregator
 
 from data_logger import BaseLogger
-import settings
 
 
 logger = logging.getLogger("librato-logger")
@@ -23,7 +22,7 @@ class LibratoLoggerThread(threading.Thread):
     """
     PERIOD = 5
 
-    def __init__(self, data_queue, metric_name):
+    def __init__(self, data_queue, metric_name, settings):
         super(LibratoLoggerThread, self).__init__()
         self.data_queue = data_queue
         self.metric_name = metric_name
@@ -50,15 +49,17 @@ class LibratoLoggerThread(threading.Thread):
                     # ensure we don't crash out. Need to learn if anything
                     # else is to be done here.
                     sys.stderr.write("{}\n".format(ex.message))
+                finally:
+                    start = time.time()
 
 
 class LibratoLogger(BaseLogger):
     """
     Manages a threaded data logger posting 1o Librato
     """
-    def __init__(self, name):
+    def __init__(self, name, settings):
         self.queue = Queue.Queue()
-        self.librato = LibratoLoggerThread(self.queue, name)
+        self.librato = LibratoLoggerThread(self.queue, name, settings)
 
     def put(self, data, timestamp=None):
         """
