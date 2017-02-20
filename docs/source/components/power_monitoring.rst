@@ -21,8 +21,27 @@ One, for example, will flash each time the metrology LED flash is detected.
 
 (diagram created with https://www.digikey.com/schemeit)
 
-Appication installation
-=======================
+Monitor application
+===================
+
+A basic application for monitoring power consumption using the above described
+hardware is included in this repository. `power.py` will report output to file,
+to Librato and to InfluxDB.
+
+Application installation
+------------------------
+
+Installation is somewhat manual for now.
+
+* Copy the code to your RPi
+* Create a virtual environment
+* pip install `src/requirements.txt`
+
+Before you can run the code, copy `settings.py.example` to `settings.py` and
+put in appropriate keys, usernames and addresses.
+
+Running the power monitor
+-------------------------
 
 The `power.py` script can be run standalone on the console as:
 
@@ -54,6 +73,11 @@ To see options:
 Init script
 -----------
 
-To keep the power tool running you need to install an init script. Run
-`install_init_script.py` in the code directory to do so. The power monitor will
-now start on boot.
+To keep the power tool running you need to install an init script:
+
+* Symlink `/usr/local/rpienv` to the directory containing your virtualenv
+* Symlink `/usr/local/rpienv/rpienv` to the `src` directory
+* Run `install_init_script.py` from the source code directory
+
+The power monitor will now start on boot and can be managed with
+`/etc/init.d/power`.

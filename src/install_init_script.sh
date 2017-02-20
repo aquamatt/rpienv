@@ -9,4 +9,4 @@ sudo chkconfig -a power
 
 echo Power monitor installed
 echo Ensure that /usr/local/rpienv is the virtualenv root
-echo and that /usr/locla/rpienv/rpienv contains power.py
+echo and that /usr/local/rpienv/rpienv contains power.py
