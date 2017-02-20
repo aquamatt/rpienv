@@ -22,12 +22,11 @@ class LibratoLoggerThread(threading.Thread):
     """
     PERIOD = 5
 
-    def __init__(self, data_queue, metric_name, settings):
+    def __init__(self, data_queue, metric_name, user, token):
         super(LibratoLoggerThread, self).__init__()
         self.data_queue = data_queue
         self.metric_name = metric_name
-        self.librato = librato.connect(
-            settings.LIBRATO_USER, settings.LIBRATO_TOKEN)
+        self.librato = librato.connect(user, token)
 
     def run(self):
         aggregator = Aggregator(self.librato,
@@ -57,9 +56,10 @@ class LibratoLogger(BaseLogger):
     """
     Manages a threaded data logger posting 1o Librato
     """
-    def __init__(self, name, settings):
+    def __init__(self, name, metric, user, token):
+        self.name = name
         self.queue = Queue.Queue()
-        self.librato = LibratoLoggerThread(self.queue, name, settings)
+        self.librato = LibratoLoggerThread(self.queue, metric, user, token)
 
     def put(self, data, timestamp=None):
         """

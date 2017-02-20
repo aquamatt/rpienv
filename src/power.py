@@ -17,9 +17,7 @@ import RPi.GPIO as GPIO
 import optfn
 
 from daemon import Daemon
-from librato_logger import LibratoLogger
-from influx_logger import InfluxLogger
-from file_logger import FileLogger
+from data_logger import DataLogger
 import settings
 
 
@@ -28,11 +26,8 @@ INPUT_PIN = 18
 LED_DETECT = 12
 LED_READY = 16
 
-DATA_FILE = "/tmp/power_{}.txt".format(int(time.time())-1422000000)
 
-librato = LibratoLogger(name="power", settings=settings)
-influxdb = InfluxLogger(name="electricity_power", settings=settings)
-fileout = FileLogger(DATA_FILE)
+DATA_LOGGER = DataLogger()
 
 
 class FlashAction(threading.Thread):
@@ -64,15 +59,12 @@ class FlashMonitor(object):
 #        energy used = 3600 Joules between flashes
 #        power = 3600 / dt Joules/s
         power = 3600 / dt
-        librato.put(power, now)
-        fileout.put(power, now)
-        influxdb.put(power, now)
+        DATA_LOGGER.put(power, now)
 
         FlashAction().start()
 
     def setup(self):
         print("Setting up the board")
-        print("Output will go to {}".format(DATA_FILE))
         GPIO.setmode(GPIO.BOARD)
         GPIO.setup(INPUT_PIN, GPIO.IN)
         GPIO.setup(LED_DETECT, GPIO.OUT)
@@ -80,17 +72,15 @@ class FlashMonitor(object):
 
         GPIO.add_event_detect(
             INPUT_PIN, GPIO.FALLING,
-            callback=self.process, bouncetime=200)
+            callback=self.process, bouncetime=100)
+        print("Monitoring started")
 
 
-def run():
+def run_monitor():
     # Daemon is killed with a SIGTERM, as might happen from CLI by a user with
     # kill, so we trap and ensure a clean shutdown if this happens.
     signal.signal(signal.SIGTERM, shutdown)
     FlashReady().start()
-    librato.start()
-    influxdb.start()
-    fileout.start()
     try:
         while True:
             time.sleep(1000)
@@ -104,16 +94,16 @@ def run():
 
 def shutdown(*args, **kwargs):
     print("CLEANING UP GPIO and loggers")
-    librato.stop()
-    influxdb.stop()
-    fileout.stop()
+    DATA_LOGGER.stop()
     GPIO.cleanup()
     sys.exit()
 
 
 def startup():
+    DATA_LOGGER.init(settings.LOGGERS)
+    DATA_LOGGER.start()
     FlashMonitor().setup()
-    run()
+    run_monitor()
 
 
 class FlashMonitorDaemon(Daemon):

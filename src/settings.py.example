@@ -1,6 +1,5 @@
 # keys and other settings
-LIBRATO_USER = 'YOUR USER'
-LIBRATO_TOKEN = 'YOUR TOKEN'
+import time
 
 INFLUXDB = {
     "host": "localhost",
@@ -12,4 +11,44 @@ INFLUXDB = {
     "verify_ssl": True,
     "use_udp": False,
     "udp_port": 4444
+    }
+
+INFLUXDB_B = {
+    "host": "otherhost.com",
+    "port": 8086,
+    "username": "root",
+    "password": "root",
+    "database": None,
+    "ssl": False,
+    "verify_ssl": True,
+    "use_udp": False,
+    "udp_port": 4444
+    }
+
+LOGGERS = {
+        'librato': {
+            'logger': 'librato_logger.LibratoLogger',
+            'metric': 'power',
+            'user': 'USER NAME HERE',
+            'token': 'KEY HERE',
+            'enabled': False
+            },
+        'influx_primary': {
+            'logger': 'influx_logger.InfluxLogger',
+            'metric': 'electricty_power',
+            'value': 'power',
+            'host_settings': INFLUXDB_HOSTED,
+            'enabled': False
+            },
+        'influx_secondary': {
+            'logger': 'influx_logger.InfluxLogger',
+            'metric': 'electricty_power',
+            'value': 'power',
+            'host_settings': INFLUXDB_B,
+            'enabled': False
+            },
+        'local_file': {
+            'logger': 'file_logger.FileLogger',
+            'fpath': "/tmp/power_{}.txt".format(int(time.time())-1422000000)
+            }
     }

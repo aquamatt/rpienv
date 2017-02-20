@@ -22,11 +22,12 @@ class InfluxLoggerThread(threading.Thread):
     """
     PERIOD = 5
 
-    def __init__(self, data_queue, metric_name, settings):
+    def __init__(self, data_queue, config):
         super(InfluxLoggerThread, self).__init__()
         self.data_queue = data_queue
-        self.metric_name = metric_name
-        self.influx = InfluxDBClient(**settings.INFLUXDB)
+        self.metric_name = config['metric']
+        self.value_name = config['value']
+        self.influx = InfluxDBClient(**config['host_settings'])
 
     def run(self):
         STOP = False
@@ -44,7 +45,7 @@ class InfluxLoggerThread(threading.Thread):
                     timestamp, value = point
                     json_point = {
                          "measurement": self.metric_name,
-                         "fields": {"power": value},
+                         "fields": {self.value_name: value},
                          "tags": {},
                          "time": datetime.fromtimestamp(timestamp)
                         }
@@ -78,9 +79,10 @@ class InfluxLogger(BaseLogger):
     """
     Manages a threaded data logger posting to InfluxDB
     """
-    def __init__(self, name, settings):
+    def __init__(self, name, **config):
         self.queue = Queue.Queue()
-        self.influx = InfluxLoggerThread(self.queue, name, settings)
+        self.name = name
+        self.influx = InfluxLoggerThread(self.queue, config)
 
     def put(self, data, timestamp=None):
         """

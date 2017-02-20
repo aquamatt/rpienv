@@ -1,3 +1,7 @@
+from import_utils import import_module_from
+import sys
+
+
 class BaseLogger(object):
     """
     Base data logger
@@ -14,3 +18,44 @@ class BaseLogger(object):
 
     def stop(self):
         pass
+
+
+class DataLogger(object):
+    """
+    Manage all loggers as configured in logger_config settings.
+    """
+    def __init__(self):
+        self.loggers = []
+
+    def init(self, logger_config):
+        """
+        Initialise all the loggers
+        """
+        for logger, config in logger_config.items():
+            if 'enabled' in config:
+                if config['enabled'] is False:
+                    continue
+                del config['enabled']
+
+            try:
+                log_class = config['logger']
+                _module = import_module_from(log_class)
+                del config['logger']
+
+                self.loggers.append(_module(logger, **config))
+                print("Installed logger: {}".format(logger))
+            except Exception as ex:
+                sys.stderr.write("Error importing {}: {}\n"
+                                 .format(log_class, ex.message))
+
+    def put(self, *args, **kwargs):
+        for logger in self.loggers:
+            logger.put(*args, **kwargs)
+
+    def start(self):
+        for logger in self.loggers:
+            logger.start()
+
+    def stop(self):
+        for logger in self.loggers:
+            logger.stop()

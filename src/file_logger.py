@@ -12,8 +12,9 @@ class FileLogger(BaseLogger):
     """
     Manages a synchronous data logger posting to a file
     """
-    def __init__(self, filename):
-        self.filename = filename
+    def __init__(self, name, fpath):
+        self.name = name
+        self.filename = fpath
         self.last = None
 
     def put(self, data, timestamp=None):
