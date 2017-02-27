@@ -81,3 +81,15 @@ To keep the power tool running you need to install an init script:
 
 The power monitor will now start on boot and can be managed with
 `/etc/init.d/power`.
+
+Circuit board
+=============
+
+With some three-holes-per-strip strip board to hand we set about designing
+a layout to move the circuit from breadboard to strip. We used DIY Layout
+Creator, a Java program (hence Linux friendly) to design the layout. Obtain
+from http://diy-fever.com/software/diylc/. The DIY source file is
+:download:`here <img/monitor_circuit_board.diy>`.
+
+
+.. image:: img/monitor_circuit_board.png
