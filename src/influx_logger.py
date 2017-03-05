@@ -20,13 +20,10 @@ class InfluxLoggerThread(threading.Thread):
     """
     Post data to Influx DB in batches
     """
-    PERIOD = 5
-
     def __init__(self, data_queue, config):
         super(InfluxLoggerThread, self).__init__()
         self.data_queue = data_queue
-        self.metric_name = config['metric']
-        self.value_name = config['value']
+        self.update_period = config.get('update_period', 5)
         self.influx = InfluxDBClient(**config['host_settings'])
 
     def run(self):
@@ -35,17 +32,18 @@ class InfluxLoggerThread(threading.Thread):
 
         # keep looping until STOP is posted to the data_queue
         while True:
-            time.sleep(InfluxLoggerThread.PERIOD)
+            time.sleep(self.update_period)
             while True:
                 try:
                     point = self.data_queue.get(block=False)
                     if point == "STOP":
                         STOP = True
                         break
-                    timestamp, value = point
+                    timestamp, metric, values = point
+                    fields = dict(values)
                     json_point = {
-                         "measurement": self.metric_name,
-                         "fields": {self.value_name: value},
+                         "measurement": metric,
+                         "fields": fields,
                          "tags": {},
                          "time": datetime.fromtimestamp(timestamp)
                         }
@@ -84,14 +82,18 @@ class InfluxLogger(BaseLogger):
         self.name = name
         self.influx = InfluxLoggerThread(self.queue, config)
 
-    def put(self, data, timestamp=None):
+    def put(self, metric, values, timestamp=None):
         """
         Put data point on the queue, with timestamp. If timestamp not supplied,
         it will be set to current time.time()
+
+        `metric` is the Influx DB metric name
+        `values` is a list of (value_name, value) tuples to be stored against
+        this timestamp on the given metric.
         """
         if timestamp is None:
             timestamp = time.time()
-        self.queue.put((timestamp, data))
+        self.queue.put((timestamp, metric, values))
 
     def start(self):
         """

@@ -99,3 +99,28 @@ RPi.GPIO, so the easiest is to create a virtualenv with:
     $ virtualenv <env dir> --system-site-packages
 
 (don't forget to install `python-virtualenv` on the system for this)
+
+Other system requirements
+-------------------------
+
+To install the Adafruit libraries and build some other packages you will need
+to `apt-get install` the following:
+
+* python-dev
+
+Enable SPI/I2C/TWI etc
+----------------------
+
+Use `raspi-config` (Advanced options) or uncomment the appropriate lines in
+`/boot/config.txt` and reboot.
+
+Lines in `/boot/config.txt` are:
+
+.. code-block:: bash
+
+  # 1-wire (e.g. for thermometer)
+  dtoverlay=w1-gpio
+  # i2c
+  dtparam=i2c_arm=on
+  # spi
+  dtparam=spi=on

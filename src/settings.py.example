@@ -1,6 +1,20 @@
 # keys and other settings
 import time
 
+PRESSURE_MONITOR_INTERVAL = 60  # seconds
+
+# Options are ULTRAHIGHRES, HIGHRES and STANDARD
+BMP180_RESOLUTION = "ULTRAHIGHRES"
+BMP180_ELEVATION = 22.84 + 3.0  # elevation, m, above sea level.
+RH_DEVICE = "AM2302"   # AM2302, DHT22 or DHT11
+RH_PIN = 23  # Broadcom pin numbering
+
+# DS18b20 device IDs mapped to locations
+DALLAS_TEMP_DEVICES = [
+    ('28-031467d30cff', 'Front'),
+    ('28-0314679a5fff', 'Back')
+    ]
+
 INFLUXDB = {
     "host": "localhost",
     "port": 8086,
@@ -38,7 +52,8 @@ LOGGERS = {
             'metric': 'electricty_power',
             'value': 'power',
             'host_settings': INFLUXDB_HOSTED,
-            'enabled': False
+            'enabled': False,
+            'update_period': 5  # seconds between uploads (default is 5s)
             },
         'influx_secondary': {
             'logger': 'influx_logger.InfluxLogger',

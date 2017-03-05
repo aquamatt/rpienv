@@ -4,7 +4,7 @@ Home electrical power monitoring
 Construction
 ============
 
-Using the :ref:`ref-tept5700` biased by a 180KΩ resistor we detect
+Using the :ref:`ref-tept5700` biased by a 180kΩ resistor we detect
 the metrology LED flash.
 
 Voltage at collector is our input and is low when light present. The pull-up

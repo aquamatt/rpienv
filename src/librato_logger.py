@@ -22,10 +22,9 @@ class LibratoLoggerThread(threading.Thread):
     """
     PERIOD = 5
 
-    def __init__(self, data_queue, metric_name, user, token):
+    def __init__(self, data_queue, user, token):
         super(LibratoLoggerThread, self).__init__()
         self.data_queue = data_queue
-        self.metric_name = metric_name
         self.librato = librato.connect(user, token)
 
     def run(self):
@@ -37,8 +36,9 @@ class LibratoLoggerThread(threading.Thread):
                 point = self.data_queue.get(block=True, timeout=1)
                 if point == "STOP":
                     return
-                timestamp, value = point
-                aggregator.add(self.metric_name, value)
+                timestamp, values = point
+                for metric_name, value in values:
+                    aggregator.add(metric_name, value)
             except Queue.Empty:
                 pass
             if time.time() - start >= LibratoLoggerThread.PERIOD:
@@ -56,19 +56,22 @@ class LibratoLogger(BaseLogger):
     """
     Manages a threaded data logger posting 1o Librato
     """
-    def __init__(self, name, metric, user, token):
+    def __init__(self, name, user, token):
         self.name = name
         self.queue = Queue.Queue()
-        self.librato = LibratoLoggerThread(self.queue, metric, user, token)
+        self.librato = LibratoLoggerThread(self.queue, user, token)
 
-    def put(self, data, timestamp=None):
+    def put(self, _, values, timestamp=None):
         """
         Put data point on the queue, with timestamp. If timestamp not supplied,
         it will be set to current time.time()
+
+        `values` is a list of (value_name, value) tuples to be stored against
+        this timestamp on the given metric.
         """
         if timestamp is None:
             timestamp = time.time()
-        self.queue.put((timestamp, data))
+        self.queue.put((timestamp, values))
 
     def start(self):
         """

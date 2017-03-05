@@ -24,3 +24,6 @@ Sensors
   :maxdepth: 1
 
   sensors/tept5700
+  sensors/dht22
+  sensors/bmp180
+  sensors/ds18b20

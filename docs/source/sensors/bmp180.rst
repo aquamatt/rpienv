@@ -1,0 +1,45 @@
+.. _ref-bmp180:
+
+BMP180 atmospheric pressure sensor
+**********************************
+
+(PDF) technical spec
+====================
+
+https://cdn-shop.adafruit.com/datasheets/BST-BMP180-DS000-09.pdf
+
+Interface: I2C
+
+Packaged boards
+===============
+
+* http://www.hobbytronics.co.uk/bmp180
+* https://www.amazon.co.uk/Sensor-board-module-Digital-pressure/dp/B00YIE4RLW/ref=sr_1_7?ie=UTF8&qid=1488646003&sr=8-7&keywords=bmp180
+
+And many more.
+
+Tutorials
+=========
+
+* https://raspberrypi-aa.github.io/session3/i2c-temp-pressure.html
+
+
+Wiring to Pi
+============
+
+======== =========== =========
+BMP180   GPIO pin     Function
+======== =========== =========
+VCC/VIN   2          +5V
+GND       6, 20 etc. Ground
+SCL       5          Clock
+SDA       3          Data
+======== =========== =========
+
+Installing the Adafruit BMP library
+===================================
+
+Github: git@github.com:adafruit/Adafruit_Python_BMP.git
+
+Check out and run `setup.py install`. This installs out of the box with no
+additional system dependencies required.

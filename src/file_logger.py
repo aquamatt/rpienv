@@ -3,7 +3,6 @@ Data logger that writes to file on disk
 """
 import datetime
 import time
-from types import ListType
 
 from data_logger import BaseLogger
 
@@ -17,9 +16,9 @@ class FileLogger(BaseLogger):
         self.filename = fpath
         self.last = None
 
-    def put(self, data, timestamp=None):
+    def put(self, metric, values, timestamp=None):
         """
-        Put data point on the log
+        Put data point(s) on the log
         """
         if timestamp is None:
             timestamp = time.time()
@@ -29,14 +28,9 @@ class FileLogger(BaseLogger):
             self.last = timestamp
             return
 
-        delta = timestamp - self.last
         self.last = timestamp
 
-        if type(data) is not ListType:
-            data = [data]
-
-        data.insert(0, delta)
-        data = [str(d) for d in [now_date, timestamp]+data]
+        values = [str(d) for d in [now_date, timestamp]+values]
 
         with open(self.filename, "at") as df:
-            df.write("{}\n".format(",".join(data)))
+            df.write("{}\n".format(",".join(values)))

@@ -59,7 +59,7 @@ class FlashMonitor(object):
 #        energy used = 3600 Joules between flashes
 #        power = 3600 / dt Joules/s
         power = 3600 / dt
-        DATA_LOGGER.put(power, now)
+        DATA_LOGGER.put("electricity_power", [("power", power)], now)
 
         FlashAction().start()
 
@@ -83,7 +83,7 @@ def run_monitor():
     FlashReady().start()
     try:
         while True:
-            time.sleep(1000)
+            time.sleep(1)
     except KeyboardInterrupt:
         print("Manual quit")
     except Exception, ex:

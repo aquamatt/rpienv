@@ -48,9 +48,13 @@ class DataLogger(object):
                 sys.stderr.write("Error importing {}: {}\n"
                                  .format(log_class, ex.message))
 
-    def put(self, *args, **kwargs):
+    def put(self, metric, values, timestamp=None):
+        """
+        Metric is a group name, values is a list of (value-name, value) pairs,
+        and timestamp is an optional system timestamp.
+        """
         for logger in self.loggers:
-            logger.put(*args, **kwargs)
+            logger.put(metric, values, timestamp)
 
     def start(self):
         for logger in self.loggers:

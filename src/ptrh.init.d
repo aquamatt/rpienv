@@ -1,29 +1,29 @@
 #!/bin/bash
 
 ### BEGIN INIT INFO
-# Provides: power_monitor
+# Provides: environment_monitor
 # Required-Start: $network
 # Required-Stop: $network
 # Default-Start: 2 3 4 5
 # Default-Stop: 0 1 6
 # Short-Description: Start and Stop
-# Description: Runs power monitor
+# Description: Runs environment monitor
 ### END INIT INFO
 
-#       /etc/init.d/power
+#       /etc/init.d/ptrh
 #
-# Starts the power monitor daemon
+# Starts the environment monitor daemon
 #
 # chkconfig: 345 90 5
-# description: Runs power monitor
+# description: Runs environment monitor
 #
-# processname: power.py
+# processname: ptrh.py
 
-prog="Power"
+prog="PTRH"
 prog_dir="/usr/local/rpienv"
 pid_dir="/var/run"
 
-pid_file="$pid_dir/power.pid"
+pid_file="$pid_dir/ptrh.pid"
 
 PATH=/sbin:/bin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:$PATH
 
@@ -34,9 +34,9 @@ is_running(){
 }
 
 start(){
-    echo -n $"Starting power monitor: "
+    echo -n $"Starting environment monitor: "
 
-    $prog_dir/bin/python $prog_dir/rpienv/power.py --pidfile=$pid_file
+    $prog_dir/bin/python $prog_dir/rpienv/ptrh.py --pidfile=$pid_file
     RETVAL=$?
     echo
     return $RETVAL
@@ -45,7 +45,7 @@ start(){
 stop(){
     echo -n $"Stopping $prog: "
     if (is_running); then
-      $prog_dir/bin/python $prog_dir/rpienv/power.py --pidfile=$pid_file --kill
+      $prog_dir/bin/python $prog_dir/rpienv/ptrh.py --pidfile=$pid_file --kill
       RETVAL=$?
       echo
       return $RETVAL
@@ -70,7 +70,7 @@ reload(){
 
 restart(){
     if (is_running); then
-      $prog_dir/bin/python $prog_dir/rpienv/power.py --pidfile=$pid_file --restart
+      $prog_dir/bin/python $prog_dir/rpienv/ptrh.py --pidfile=$pid_file --restart
       RETVAL=$?
       echo
       return $RETVAL
