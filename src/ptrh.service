@@ -1,0 +1,11 @@
+[Unit]
+Description=Pressure, temprature monitor daemon
+After=multi-user.target
+
+[Service]
+Type=simple
+Restart=always
+ExecStart=/usr/local/rpienv/bin/python /usr/local/rpienv/rpienv/ptrh.py --nodaemon
+
+[Install]
+WantedBy=multi-user.target

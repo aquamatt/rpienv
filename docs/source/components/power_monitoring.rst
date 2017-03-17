@@ -69,18 +69,38 @@ To see options:
 
   > ./power.py --pidfile=/tmp/power.pid -h
 
+Init script (systemD)
+---------------------
 
-Init script
------------
+systemd is the latest service management system being adopted by debian and is
+present on recent Raspbian builds. It does a good job of re-starting processes
+that die, and it simplifies programming because processes no longer need to
+daemonise themselves and perform the double-fork dance.
+
+A systemd service file is provided. To install:
+
+* Symlink `/usr/local/rpienv` to the directory containing your virtualenv
+* Symlink `/usr/local/rpienv/rpienv` to the `src` directory
+* Run `install_service.sh` from the source code directory
+
+The power monitor will now start on boot and can be managed with `systemctl`.
+
+Init script (init.d - legacy)
+-----------------------------
 
 To keep the power tool running you need to install an init script:
 
 * Symlink `/usr/local/rpienv` to the directory containing your virtualenv
 * Symlink `/usr/local/rpienv/rpienv` to the `src` directory
-* Run `install_init_script.py` from the source code directory
+* Run `install_init_script.sh` from the source code directory
 
 The power monitor will now start on boot and can be managed with
 `/etc/init.d/power`.
+
+
+.. warning:: It is likely that we will remove the capability to daemonise the
+             scripts in order to simplify them. Therefore initd will not be
+             supported at that point.
 
 Circuit board
 =============
