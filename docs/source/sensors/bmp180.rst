@@ -28,7 +28,7 @@ Wiring to Pi
 ============
 
 ======== =========== =========
-BMP180   GPIO pin     Function
+BMP180   Board pin    Function
 ======== =========== =========
 VCC/VIN   2          +5V
 GND       6, 20 etc. Ground
