@@ -9,6 +9,10 @@ BMP180_ELEVATION = 22.84 + 3.0  # elevation, m, above sea level.
 RH_DEVICE = "AM2302"   # AM2302, DHT22 or DHT11
 RH_PIN = 23  # Broadcom pin numbering
 
+# Un-comment and set correctly if an indicator LED is connected
+# and to be used
+# INDICATOR_LED = 18 # Broadcom pin numbering
+
 # DS18b20 device IDs mapped to locations
 DALLAS_TEMP_DEVICES = [
     ('28-031467d30cff', 'Front'),

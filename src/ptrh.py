@@ -8,10 +8,12 @@
 from __future__ import division
 import sys
 import signal
+import threading
 import time
 
 import Adafruit_BMP.BMP085 as BMP085
 import Adafruit_DHT as DHT
+import RPi.GPIO as GPIO
 import optfn
 
 import dallas
@@ -21,6 +23,53 @@ import settings
 
 
 DATA_LOGGER = DataLogger()
+INDICATOR_LED = getattr(settings, "INDICATOR_LED", None)
+
+
+class FlashIndicator(threading.Thread):
+    """
+    Flash the indicator LED
+    """
+    def run(self):
+        GPIO.output(INDICATOR_LED, 1)
+        time.sleep(0.02)
+        GPIO.output(INDICATOR_LED, 0)
+
+
+def _init_bmp180():
+    mode_string = getattr(settings, "BMP180", "HIGHRES")
+    if mode_string not in ["ULTRAHIGHRES", "HIGHRES", "STANDARD"]:
+        raise Exception("Invalid BMP180 resolution mode: {}"
+                        .format(mode_string))
+    mode = getattr(BMP085, "BMP085_{}".format(mode_string))
+    bmp_sensor = BMP085.BMP085(mode=mode)
+    return bmp_sensor
+
+
+def _read_bmp180(bmp_sensor):
+    temp = bmp_sensor.read_temperature()
+    pressure = bmp_sensor.read_sealevel_pressure(
+        altitude_m=settings.BMP180_ELEVATION)
+    return temp, pressure
+
+
+def _init_dht():
+    rh_sensor_name = getattr(settings, "RH_DEVICE", "DHT22")
+    if rh_sensor_name not in ["DHT11", "DHT22", "AM2302"]:
+        raise Exception("Invalid relative humidity sensor: {}"
+                        .format(rh_sensor_name))
+    rh_sensor = getattr(DHT, rh_sensor_name)
+    rh_pin = getattr(settings, "RH_PIN")
+    return rh_sensor, rh_pin
+
+
+def _read_dht(rh_sensor, rh_pin):
+    # Try to grab a sensor reading.  Use the read_retry method which
+    # will retry up to 15 times to get a sensor reading (waiting
+    # 2 seconds between each retry).
+    humidity, dht_temp = DHT.read_retry(rh_sensor, rh_pin)
+    return humidity, dht_temp
+
 
 def run_monitor():
     # Daemon is killed with a SIGTERM, as might happen from CLI by a user with
@@ -28,20 +77,10 @@ def run_monitor():
     signal.signal(signal.SIGTERM, shutdown)
 
     # setup the BMP180 library (atmospheric pressure)
-    mode_string = getattr(settings, "BMP180", "HIGHRES")
-    if mode_string not in ["ULTRAHIGHRES", "HIGHRES", "STANDARD"]:
-        raise Exception("Invalid BMP180 resolution mode: {}"
-                        .format(mode_string))
-    mode = getattr(BMP085, "BMP085_{}".format(mode_string))
-    bmp_sensor = BMP085.BMP085(mode=mode)
+    bmp_sensor = _init_bmp180()
 
     # setup the DHT22 library (relative humidity)
-    rh_sensor_name = getattr(settings, "RH_DEVICE", "DHT22")
-    if rh_sensor_name not in ["DHT11", "DHT22", "AM2302"]:
-        raise Exception("Invalid relative humidity sensor: {}"
-                        .format(rh_sensor_name))
-    rh_sensor = getattr(DHT, rh_sensor_name)
-    rh_pin = getattr(settings, "RH_PIN")
+    rh_sensor, rh_pin = _init_dht()
 
     # enter measurement loop
     try:
@@ -49,20 +88,15 @@ def run_monitor():
             now = time.time()
 
             # BMP180
-            temp = bmp_sensor.read_temperature()
-            pres = bmp_sensor.read_sealevel_pressure(
-                altitude_m=settings.BMP180_ELEVATION)
+            temp, pressure = _read_bmp180(bmp_sensor)
 
             # DHT22
-            # Try to grab a sensor reading.  Use the read_retry method which
-            # will retry up to 15 times to get a sensor reading (waiting
-            # 2 seconds between each retry).
-            humidity, dht_temp = DHT.read_retry(rh_sensor, rh_pin)
+            humidity, dht_temp = _read_dht(rh_sensor, rh_pin)
 
-            # Post the response
+            # Post the responses
             fields = [
                 ("temp_bmp180", temp),
-                ("pressure", pres/100.0),
+                ("pressure", pressure/100.0),
                 ]
 
             # Note that sometimes you won't get a reading from DHT22 and
@@ -89,6 +123,9 @@ def run_monitor():
                             [("measurements", measured-now),
                              ("transmit", sent-measured)], now)
 
+            if INDICATOR_LED is not None:
+                FlashIndicator().start()
+
             time.sleep(settings.PRESSURE_MONITOR_INTERVAL)
     except KeyboardInterrupt:
         print("Manual quit")
@@ -101,12 +138,17 @@ def run_monitor():
 def shutdown(*args, **kwargs):
     print("Closing loggers and exiting")
     DATA_LOGGER.stop()
+    GPIO.cleanup()
     sys.exit()
 
 
 def startup():
     DATA_LOGGER.init(settings.LOGGERS)
     DATA_LOGGER.start()
+
+    if INDICATOR_LED is not None:
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(INDICATOR_LED, GPIO.OUT)
     run_monitor()
 
 

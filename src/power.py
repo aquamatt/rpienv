@@ -108,7 +108,7 @@ def startup():
 
 class FlashMonitorDaemon(Daemon):
     def run(self):
-        startup()
+
 
 
 def daemonise(pidfile="/var/run/power.pid", kill=False, restart=False):
