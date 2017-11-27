@@ -26,6 +26,9 @@ import settings
 DATA_LOGGER = DataLogger()
 INDICATOR_LED = getattr(settings, "INDICATOR_LED", None)
 
+MEASURE_PRESSURE = getattr(settings, "MEASURE_PRESSURE", True)
+MEASURE_RH = getattr(settings, "MEASURE_RH", True)
+
 
 class FlashIndicator(threading.Thread):
     """
@@ -94,40 +97,45 @@ def run_monitor():
     signal.signal(signal.SIGTERM, shutdown)
 
     # setup the BMP180 library (atmospheric pressure)
-    bmp_sensor = _init_bmp180()
+    if MEASURE_PRESSURE:
+        bmp_sensor = _init_bmp180()
 
     # setup the DHT22 library (relative humidity)
-    rh_sensor, rh_pin = _init_dht()
+    if MEASURE_RH:
+        rh_sensor, rh_pin = _init_dht()
 
     # enter measurement loop
     try:
         while True:
             now = time.time()
 
+            fields = []
+
             # BMP180
-            temp, pressure = _read_bmp180(bmp_sensor)
+            if MEASURE_PRESSURE:
+                temp, pressure = _read_bmp180(bmp_sensor)
+                fields.extend([
+                    ("temp_bmp180", temp),
+                    ("pressure", pressure/100.0),
+                    ])
 
             # DHT22
-            humidity, dht_temp = _read_dht(rh_sensor, rh_pin)
+            if MEASURE_RH:
+                humidity, dht_temp = _read_dht(rh_sensor, rh_pin)
 
-            # Post the responses
-            fields = [
-                ("temp_bmp180", temp),
-                ("pressure", pressure/100.0),
-                ]
+                # Note that sometimes you won't get a reading from DHT22 and
+                # the results will be null (because Linux can't
+                # guarantee the timing of calls to read the sensor).
+                if humidity is not None:
+                    fields.append(("rh", humidity))
+                if dht_temp is not None:
+                    fields.append(("temp_dht22", dht_temp))
 
-            # Note that sometimes you won't get a reading from DHT22 and
-            # the results will be null (because Linux can't
-            # guarantee the timing of calls to read the sensor).
-            if humidity is not None:
-                fields.append(("rh", humidity))
-            if dht_temp is not None:
-                fields.append(("temp_dht22", dht_temp))
-
-            if (humidity is not None) and (dht_temp is not None):
-                fields.append(("dew_point", dew_point(dht_temp, humidity)))
+                if (humidity is not None) and (dht_temp is not None):
+                    fields.append(("dew_point", dew_point(dht_temp, humidity)))
 
             # DS18B20
+            # Measure temperature from each of the sensors configured
             for id, location in settings.DALLAS_TEMP_DEVICES:
                 temp = dallas.read_temperature(id)
                 if temp is not None:

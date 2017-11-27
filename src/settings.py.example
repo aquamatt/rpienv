@@ -13,6 +13,14 @@ RH_PIN = 23  # Broadcom pin numbering
 # and to be used
 # INDICATOR_LED = 18 # Broadcom pin numbering
 
+# Un-comment to disable measuring of atmospheric pressure
+# with BMP180 (and BMP180 temp, by association)
+# MEASURE_PRESSURE = False
+
+# Un-comment to disable measuring of relative humidity
+# with DHT device (and DHT temp, by association)
+# MEASURE_RH = False
+
 # DS18b20 device IDs mapped to locations
 DALLAS_TEMP_DEVICES = [
     ('28-031467d30cff', 'Front'),
