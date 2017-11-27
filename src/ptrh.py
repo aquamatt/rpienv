@@ -6,6 +6,7 @@
 # $ ptrh.py
 #
 from __future__ import division
+import math
 import sys
 import signal
 import threading
@@ -71,6 +72,22 @@ def _read_dht(rh_sensor, rh_pin):
     return humidity, dht_temp
 
 
+def dew_point(temp, rh):
+    """
+    Approximate dew-point calculation with Magnus formula as per:
+    https://en.wikipedia.org/wiki/Dew_point
+    """
+    b = 18.678
+    c = 257.14
+
+    # NOAA constants
+    # b = 17.67
+    # c = 243.5
+    gamma = math.log(rh/100.0) + (b*temp)/(c+temp)
+    t_dp = (c*gamma) / (b-gamma)
+    return t_dp
+
+
 def run_monitor():
     # Daemon is killed with a SIGTERM, as might happen from CLI by a user with
     # kill, so we trap and ensure a clean shutdown if this happens.
@@ -106,6 +123,9 @@ def run_monitor():
                 fields.append(("rh", humidity))
             if dht_temp is not None:
                 fields.append(("temp_dht22", dht_temp))
+
+            if (humidity is not None) and (dht_temp is not None):
+                fields.append(("dew_point", dew_point(dht_temp, humidity)))
 
             # DS18B20
             for id, location in settings.DALLAS_TEMP_DEVICES:
