@@ -21,6 +21,12 @@ RH_PIN = 23  # Broadcom pin numbering
 # with DHT device (and DHT temp, by association)
 # MEASURE_RH = False
 
+# Un-comment to enable reporting of WiFi strength
+# MEASURE_WLAN = True
+
+# Default is wlan0, but can specify WLAN device here
+# WLAN_INTERFACE = "wlan0"
+
 # DS18b20 device IDs mapped to locations
 DALLAS_TEMP_DEVICES = [
     ('28-031467d30cff', 'Front'),

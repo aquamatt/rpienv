@@ -7,6 +7,7 @@
 #
 from __future__ import division
 import math
+import os
 import sys
 import signal
 import threading
@@ -28,6 +29,8 @@ INDICATOR_LED = getattr(settings, "INDICATOR_LED", None)
 
 MEASURE_PRESSURE = getattr(settings, "MEASURE_PRESSURE", True)
 MEASURE_RH = getattr(settings, "MEASURE_RH", True)
+MEASURE_WLAN = getattr(settings, "MEASURE_WLAN", False)
+WLAN_INTERFACE = getattr(settings, "WLAN_INTERFACE", "wlan0")
 
 
 class FlashIndicator(threading.Thread):
@@ -73,6 +76,24 @@ def _read_dht(rh_sensor, rh_pin):
     # 2 seconds between each retry).
     humidity, dht_temp = DHT.read_retry(rh_sensor, rh_pin)
     return humidity, dht_temp
+
+
+def read_wlan_stats():
+    """
+    Return WLAN quality and strength
+    """
+
+    with os.popen("iwconfig {}".format(WLAN_INTERFACE), "r") as f:
+        for l in f:
+            if "Quality" in l:
+                [_, quality, _, strength, _] = l.split()
+                try:
+                    quality = 100.0 * eval(quality.split("=")[1])
+                except Exception:
+                    quality = -1.0
+                strength = float(strength.split("=")[1])
+                break
+    return quality, strength
 
 
 def dew_point(temp, rh):
@@ -150,6 +171,12 @@ def run_monitor():
             DATA_LOGGER.put("measure_loop",
                             [("measurements", measured-now),
                              ("transmit", sent-measured)], now)
+
+            # WiFi
+            if MEASURE_WLAN:
+                _, strength = read_wlan_stats()
+                DATA_LOGGER.put("system_stats",
+                                [("wlan_strength", strength)], now)
 
             if INDICATOR_LED is not None:
                 FlashIndicator().start()
