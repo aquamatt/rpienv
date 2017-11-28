@@ -31,6 +31,7 @@ MEASURE_PRESSURE = getattr(settings, "MEASURE_PRESSURE", True)
 MEASURE_RH = getattr(settings, "MEASURE_RH", True)
 MEASURE_WLAN = getattr(settings, "MEASURE_WLAN", False)
 WLAN_INTERFACE = getattr(settings, "WLAN_INTERFACE", "wlan0")
+REPORT_TIMING = getattr(settings, "REPORT_TIMING", False)
 
 
 class FlashIndicator(threading.Thread):
@@ -168,9 +169,10 @@ def run_monitor():
 
             # monitor how long this loop is taking to execute
             sent = time.time()
-            DATA_LOGGER.put("measure_loop",
-                            [("measurements", measured-now),
-                             ("transmit", sent-measured)], now)
+            if REPORT_TIMING:
+                DATA_LOGGER.put("measure_loop",
+                                [("measurements", measured-now),
+                                 ("transmit", sent-measured)], now)
 
             # WiFi
             if MEASURE_WLAN:

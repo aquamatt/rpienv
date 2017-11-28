@@ -27,6 +27,10 @@ RH_PIN = 23  # Broadcom pin numbering
 # Default is wlan0, but can specify WLAN device here
 # WLAN_INTERFACE = "wlan0"
 
+# Un-comment to enable reporting of timing stats
+# (should not be enabled on multiple devices)
+# REPORT_TIMING = True
+
 # DS18b20 device IDs mapped to locations
 DALLAS_TEMP_DEVICES = [
     ('28-031467d30cff', 'Front'),
