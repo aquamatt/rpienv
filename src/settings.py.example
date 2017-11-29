@@ -31,6 +31,15 @@ RH_PIN = 23  # Broadcom pin numbering
 # (should not be enabled on multiple devices)
 # REPORT_TIMING = True
 
+# Interval between running speedtest.net broadband
+# speed tests (in seconds) when netmon is running
+NET_SPEED_TEST_INTERVAL = 300  # seconds
+
+# Override path to speedtest CLI binary - must do so if working from a
+# virtualenv
+# SPEEDTEST_BIN = "speedtest-cli"
+
+
 # DS18b20 device IDs mapped to locations
 DALLAS_TEMP_DEVICES = [
     ('28-031467d30cff', 'Front'),

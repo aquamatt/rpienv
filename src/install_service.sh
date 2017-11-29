@@ -4,12 +4,12 @@
 #
 # Use:
 #
-# $ ./install_service.sh <power|ptrh>
+# $ ./install_service.sh <power|ptrh|netmon>
 PROG=$1
 
 if [ "${PROG}" == "" ]
 then
-    echo "You must specify one of <power|ptrh> to install"
+    echo "You must specify one of <power|ptrh|netmon> to install"
     exit 1
 fi
 
