@@ -79,24 +79,6 @@ def _read_dht(rh_sensor, rh_pin):
     return humidity, dht_temp
 
 
-def read_wlan_stats():
-    """
-    Return WLAN quality and strength
-    """
-
-    with os.popen("iwconfig {}".format(WLAN_INTERFACE), "r") as f:
-        for l in f:
-            if "Quality" in l:
-                [_, quality, _, strength, _] = l.split()
-                try:
-                    quality = 100.0 * eval(quality.split("=")[1])
-                except Exception:
-                    quality = -1.0
-                strength = float(strength.split("=")[1])
-                break
-    return quality, strength
-
-
 def dew_point(temp, rh):
     """
     Approximate dew-point calculation with Magnus formula as per:
@@ -111,6 +93,40 @@ def dew_point(temp, rh):
     gamma = math.log(rh/100.0) + (b*temp)/(c+temp)
     t_dp = (c*gamma) / (b-gamma)
     return t_dp
+
+
+def _to_keys(l):
+    """
+    Split the stats line from iwconfig into components and put into a dict.
+    It allows for different responses from different WLAN devices.
+    """
+    d = {}
+    if 'dBm' in l:
+        l.remove('dBm')
+    while l:
+        k = l.pop(0)
+        v = l.pop(0)
+        if '=' in v:
+            v = v.split('=')[1]
+        d[k] = v
+    return d
+
+
+def read_wlan_stats():
+    """
+    Return WLAN quality and strength
+    """
+
+    with os.popen("iwconfig {}".format(WLAN_INTERFACE), "r") as f:
+        for l in f:
+            if "Quality" in l:
+                v = _to_keys(l.split())
+                quality = float(eval(str(v.get('Link', 0.0))))
+                strength = float(eval(str(v.get('Signal', 0.0))))
+                noise = float(eval(str(v.get('Noise', 0.0))))
+                break
+    return quality, strength, noise
+
 
 
 def run_monitor():
@@ -176,9 +192,11 @@ def run_monitor():
 
             # WiFi
             if MEASURE_WLAN:
-                _, strength = read_wlan_stats()
+                quality, strength, noise = read_wlan_stats()
                 DATA_LOGGER.put("system_stats",
-                                [("wlan_strength", strength)], now)
+                                [("wlan_strength", strength),
+                                 ("wlan_quality", quality),
+                                 ("wlan_noise", noise)], now)
 
             if INDICATOR_LED is not None:
                 FlashIndicator().start()
