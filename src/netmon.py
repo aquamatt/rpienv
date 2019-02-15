@@ -20,22 +20,30 @@ NET_SPEED_TEST_INTERVAL = getattr(settings, "NET_SPEED_TEST_INTERVAL", 300)
 SPEEDTEST_BIN = getattr(settings, "SPEEDTEST_BIN", "speedtest-cli")
 
 
+def _get_headers():
+    with os.popen("{} --csv-header".format(SPEEDTEST_BIN), "r") as f:
+        l = f.next().strip()
+        headers = [h.replace(' ', '_').lower() for h in l.split(',')]
+    return headers
+
+
 def run_monitor(debug):
     # Daemon is killed with a SIGTERM, as might happen from CLI by a user with
     # kill, so we trap and ensure a clean shutdown if this happens.
     signal.signal(signal.SIGTERM, shutdown)
 
     try:
+        headers = _get_headers()
         while True:
-            with os.popen("{} --csv".format(SPEEDTEST_BIN), "r") as f:
-                results = f.next().strip().split(',')[-3:]
+            with os.popen('"{} --csv --csv-delimiter "|" '.format(SPEEDTEST_BIN), "r") as f:
+                l = f.next().strip().split('|')
 
-            ping, download, upload = [float(x) for x in results]
-            download = download / BITS_IN_MEGABIT
-            upload = upload / BITS_IN_MEGABIT
+            results = dict(zip(headers, l))
+            ping = float(results['ping'])
+            download = float(results['download']) / BITS_IN_MEGABIT
+            upload = float(results['upload']) / BITS_IN_MEGABIT
 
             if debug:
-                print("Response from speedtest: {}".format(results))
                 print("ping/down/up: {} ms / {} Mbit/s / {} Mbit/s"
                       .format(ping, download, upload))
             else:
